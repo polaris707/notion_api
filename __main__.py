@@ -1,5 +1,4 @@
 import os
-import sys
 import pathlib
 import yaml
 import argparse
@@ -17,18 +16,15 @@ def parseArgs():
     parser.add_argument("-s", "--status")
     parser.add_argument("-t", "--tag", nargs="*")
     parser.add_argument("-d", "--due_date", default=datetime.datetime.now().strftime("%Y-%m-%d"))
-    parser.add_argument("-c", "--config_file", default="config.yaml")
     return parser.parse_args().__dict__
 
 
-def makeConfig():
-    args = parseArgs()
-    config_yaml_path = os.path.join(pathlib.Path(__file__).parent.resolve(), args["config_file"])
+def makeConfig(args):
+    config_yaml_path = os.path.join(pathlib.Path(__file__).parent.resolve(), "config.yaml")
     with open(config_yaml_path) as f:
         config = yaml.load(f, Loader=SafeLoader)
     
     # merge args and config
-    config["method"] = args["method"]
     for k in config.keys():
         if k in args:
             config[k] = args[k]
@@ -37,25 +33,27 @@ def makeConfig():
     return config
 
 
-def main(method, **kwargs):
+def main(args):
+    method = args.pop("method")
+    config = makeConfig(args)
+
     if method == "create":
-        return createPage(**kwargs)
+        return createPage(**config)
     elif method == "select":
-        return selectPage(**kwargs)
+        return selectPage(**config)
     elif method == "update":
-        page_id = getPageId(**kwargs)
-        return updatePage(page_id, **kwargs)
+        page_id = getPageId(**config)
+        return updatePage(page_id, **config)
     elif method == "delete":
-        page_id = getPageId(**kwargs)
-        return deletePage(page_id, **kwargs)
+        page_id = getPageId(**config)
+        return deletePage(page_id, **config)
     else:
         raise Exception("invalid method")
 
 
 if __name__ == "__main__":
-    config = makeConfig()
-    pprint(config)
-    pprint(main(**config))
+    args = parseArgs()
+    pprint(main(args))
     # python . -m create
     # python . -m select
     # python . -m update -s completed -t finance
