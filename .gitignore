@@ -1,5 +1,7 @@
 __pycache__
 *.pyc
 .python-version
+virtualenv
+notion_api.zip
 config.yaml
 *.ipynb
